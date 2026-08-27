@@ -386,6 +386,8 @@ changeStatus:   Record<string, "new" | "edited" | "deleted" | null>
 
 ## Testing Strategy
 
+**NOTE: Tests are not implemented as part of this feature.** The codebase currently has no test framework, no `package.json`, and no test runner. The test specifications below are preserved for future implementation — when a test framework is set up, these specifications can be used as a guide. All implementation tasks should skip test writing and test execution.
+
 ### Unit Tests (Example-Based)
 
 Unit tests cover specific scenarios, edge cases, and integration points:
