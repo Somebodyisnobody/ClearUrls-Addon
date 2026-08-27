@@ -376,31 +376,31 @@
         "description": "nur zur Fehlerbehebung benötigt"
     },
     "local_rules_page_title": {
-        "message": "ClearURLs local rule overrides",
+        "message": "ClearURLs lokale Regeln",
         "description": "This string is used as the page title on the local rules editor page."
     },
     "local_rules_provider_list_heading": {
-        "message": "Local Rule Providers",
+        "message": "Lokale Regeln (überschreiben Provider aus der globalen data.json)",
         "description": "This string is used as the heading above the provider list on the local rules editor page."
     },
     "local_rules_add_btn": {
-        "message": "Add Provider",
+        "message": "Provider hinzufügen",
         "description": "This string is used as the label for the add provider button on the local rules editor page."
     },
     "local_rules_edit_btn": {
-        "message": "Edit",
+        "message": "Bearbeiten",
         "description": "This string is used as the label for the edit button on each provider entry in the local rules editor."
     },
     "local_rules_delete_btn": {
-        "message": "Delete",
+        "message": "Löschen",
         "description": "This string is used as the label for the delete button on each provider entry in the local rules editor."
     },
     "local_rules_save_btn": {
-        "message": "Save",
+        "message": "Speichern",
         "description": "This string is used as the label for the page-level save button on the local rules editor page."
     },
     "local_rules_cancel_btn": {
-        "message": "Cancel",
+        "message": "Abbrechen",
         "description": "This string is used as the label for the page-level cancel button on the local rules editor page."
     },
     "local_rules_form_ok_btn": {
@@ -408,7 +408,7 @@
         "description": "This string is used as the label for the OK button on the provider form in the local rules editor."
     },
     "local_rules_form_cancel_btn": {
-        "message": "Cancel",
+        "message": "Abbrechen",
         "description": "This string is used as the label for the cancel button on the provider form in the local rules editor."
     },
     "local_rules_field_provider_name": {
@@ -416,63 +416,63 @@
         "description": "This string is used as the label for the provider name input field on the local rules editor form."
     },
     "local_rules_field_url_pattern": {
-        "message": "URL Pattern (RegExp)",
+        "message": "URL Pattern (RegEx)",
         "description": "This string is used as the label for the URL pattern input field on the local rules editor form."
     },
     "local_rules_field_rules": {
-        "message": "Rules (comma-separated)",
+        "message": "Regeln (kommasepariert, in Anführungszeichen, RegEx)",
         "description": "This string is used as the label for the rules input field on the local rules editor form."
     },
     "local_rules_field_raw_rules": {
-        "message": "Raw Rules (comma-separated)",
+        "message": "Regeln, Rohform (kommasepariert, in Anführungszeichen, RegEx)",
         "description": "This string is used as the label for the raw rules input field on the local rules editor form."
     },
     "local_rules_field_exceptions": {
-        "message": "Exceptions (comma-separated)",
+        "message": "Ausnahmen (kommasepariert, in Anführungszeichen, RegEx)",
         "description": "This string is used as the label for the exceptions input field on the local rules editor form."
     },
     "local_rules_field_redirections": {
-        "message": "Redirections (comma-separated)",
+        "message": "Weiterleitungen (kommasepariert, in Anführungszeichen, RegEx)",
         "description": "This string is used as the label for the redirections input field on the local rules editor form."
     },
     "local_rules_field_referral_marketing": {
-        "message": "Referral Marketing (comma-separated)",
+        "message": "Referral-Marketing (kommasepariert, in Anführungszeichen, RegEx)",
         "description": "This string is used as the label for the referral marketing input field on the local rules editor form."
     },
     "local_rules_field_complete_provider": {
-        "message": "Complete Provider (block entire URL)",
+        "message": "Gesamter Provider blockieren",
         "description": "This string is used as the label for the complete provider checkbox on the local rules editor form."
     },
     "local_rules_field_force_redirection": {
-        "message": "Force Redirection",
+        "message": "Erzwinge Weiterleitung",
         "description": "This string is used as the label for the force redirection checkbox on the local rules editor form."
     },
     "local_rules_error_name_empty": {
-        "message": "Provider name must not be empty.",
+        "message": "Name des Providers darf nicht leer sein.",
         "description": "This string is used as a validation error message when the provider name field is left empty."
     },
     "local_rules_error_pattern_empty": {
-        "message": "URL pattern must not be empty.",
+        "message": "URL pattern darf nicht leer sein.",
         "description": "This string is used as a validation error message when the URL pattern field is left empty."
     },
     "local_rules_error_pattern_invalid": {
-        "message": "URL pattern is not a valid regular expression.",
+        "message": "URL pattern ist kein valider Regulärer Ausdruck.",
         "description": "This string is used as a validation error message when the URL pattern is not a valid RegExp."
     },
     "local_rules_error_array_invalid": {
-        "message": "Invalid format. Use quoted, comma-separated values: \"value1\", \"value2\"",
+        "message": "Ungültiges Format. Benutze kommaseparierte Werte in Anführungszeichen: \"value1\", \"value2\"",
         "description": "This string is used as a validation error message when an array field cannot be parsed as a JSON string array."
     },
     "local_rules_form_title_add": {
-        "message": "Add New Provider",
+        "message": "Neuen Provider hinzufügen",
         "description": "This string is used as the form heading when adding a new provider in the local rules editor."
     },
     "local_rules_form_title_edit": {
-        "message": "Edit Provider",
+        "message": "Provider Bearbeiten",
         "description": "This string is used as the form heading when editing an existing provider in the local rules editor."
     },
     "popup_local_rules_title": {
-        "message": "Open local rule overrides editor",
+        "message": "Öffnet den Editor für lokale Regeln, welche die globalen Provider überschreiben.",
         "description": "This string is used as the tooltip for the local rules link in the popup."
     }
 }
