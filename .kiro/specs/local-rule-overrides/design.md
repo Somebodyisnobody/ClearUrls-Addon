@@ -234,6 +234,17 @@ The form-level OK/Cancel is separate from the page-level Save/Cancel:
 - **Page Save**: Commits all staged changes to storage and triggers provider reload.
 - **Page Cancel**: Discards all staged changes by reverting to `persistedRules`.
 
+**Button state rules**:
+
+Page-level Save button is enabled if and only if:
+- The effective staged rules (staged minus entries marked "deleted") differ from `persistedRules` (deep comparison via `JSON.stringify`).
+- Edge cases that keep Save disabled: add provider X then delete X before saving; edit a provider then manually revert all fields to original values; mark a provider deleted then un-delete it (restoring original state).
+
+Form-level OK button is enabled if and only if:
+- **Add mode**: at least one text field is non-empty OR any checkbox is non-default (checked).
+- **Edit mode**: any form field value differs from the snapshot captured when the form was opened (raw string comparison for text fields, boolean comparison for checkboxes).
+- Button state updates in real-time on every `input`/`change` event.
+
 Re-opening a staged entry preserves its staged values. For example:
 1. User creates entry "foo" → OK → status is "new", staged.
 2. User edits "foo" → changes urlPattern → OK → status remains "new", new urlPattern applied.

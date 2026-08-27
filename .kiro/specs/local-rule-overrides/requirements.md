@@ -110,7 +110,27 @@ The ClearURLs browser addon removes tracking query parameters from URLs using a 
 3. IF validation fails, THEN THE CRUD_Editor SHALL display an inline error message next to the offending field and SHALL NOT save the entry, keeping the form open so that the user can correct the invalid fields.
 4. THE CRUD_Editor SHALL accept empty arrays for optional list fields (`rules`, `rawRules`, `exceptions`, `redirections`, `referralMarketing`), because a provider definition can legitimately omit these.
 
-### Requirement 9: Scope Exclusions
+### Requirement 9: Page-Level Save Button State
+
+**User Story:** As an addon user, I want the Save button disabled when there are no actual changes, so that I don't accidentally trigger a save that does nothing.
+
+#### Acceptance Criteria
+
+1. THE Save button SHALL be disabled when the effective staged rules (staged minus deleted) are deeply equal to the persisted rules.
+2. THE Save button SHALL be enabled when the effective staged rules differ from the persisted rules.
+3. Edge cases: adding a provider then deleting it before saving, or editing a provider then manually reverting the values, SHALL result in the Save button being disabled if the net result matches the persisted state.
+
+### Requirement 10: Form-Level OK Button State
+
+**User Story:** As an addon user, I want the OK button disabled until I've actually made changes, so that editing a provider without changing anything doesn't mark it as dirty.
+
+#### Acceptance Criteria
+
+1. In add mode, THE OK button SHALL be disabled until at least one text field is non-empty or any boolean field is set to a non-default value.
+2. In edit mode, THE OK button SHALL be disabled until any form field value differs from the values present when the form was opened.
+3. THE OK button state SHALL update in real-time as the user types or toggles checkboxes.
+
+### Requirement 11: Scope Exclusions
 
 **User Story:** As a project maintainer, I want the feature scope explicitly bounded, so that implementation stays focused and reviewable.
 
