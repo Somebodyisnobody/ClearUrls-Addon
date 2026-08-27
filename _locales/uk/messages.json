@@ -367,5 +367,105 @@
     },
     "context_menu_enabled_title": {
         "message": " "
+    },
+    "local_rules_page_title": {
+        "message": "ClearURLs local rule overrides",
+        "description": "This string is used as the page title on the local rules editor page."
+    },
+    "local_rules_provider_list_heading": {
+        "message": "Local Rule Providers",
+        "description": "This string is used as the heading above the provider list on the local rules editor page."
+    },
+    "local_rules_add_btn": {
+        "message": "Add Provider",
+        "description": "This string is used as the label for the add provider button on the local rules editor page."
+    },
+    "local_rules_edit_btn": {
+        "message": "Edit",
+        "description": "This string is used as the label for the edit button on each provider entry in the local rules editor."
+    },
+    "local_rules_delete_btn": {
+        "message": "Delete",
+        "description": "This string is used as the label for the delete button on each provider entry in the local rules editor."
+    },
+    "local_rules_save_btn": {
+        "message": "Save",
+        "description": "This string is used as the label for the page-level save button on the local rules editor page."
+    },
+    "local_rules_cancel_btn": {
+        "message": "Cancel",
+        "description": "This string is used as the label for the page-level cancel button on the local rules editor page."
+    },
+    "local_rules_form_ok_btn": {
+        "message": "OK",
+        "description": "This string is used as the label for the OK button on the provider form in the local rules editor."
+    },
+    "local_rules_form_cancel_btn": {
+        "message": "Cancel",
+        "description": "This string is used as the label for the cancel button on the provider form in the local rules editor."
+    },
+    "local_rules_field_provider_name": {
+        "message": "Provider Name",
+        "description": "This string is used as the label for the provider name input field on the local rules editor form."
+    },
+    "local_rules_field_url_pattern": {
+        "message": "URL Pattern (RegExp)",
+        "description": "This string is used as the label for the URL pattern input field on the local rules editor form."
+    },
+    "local_rules_field_rules": {
+        "message": "Rules (comma-separated)",
+        "description": "This string is used as the label for the rules input field on the local rules editor form."
+    },
+    "local_rules_field_raw_rules": {
+        "message": "Raw Rules (comma-separated)",
+        "description": "This string is used as the label for the raw rules input field on the local rules editor form."
+    },
+    "local_rules_field_exceptions": {
+        "message": "Exceptions (comma-separated)",
+        "description": "This string is used as the label for the exceptions input field on the local rules editor form."
+    },
+    "local_rules_field_redirections": {
+        "message": "Redirections (comma-separated)",
+        "description": "This string is used as the label for the redirections input field on the local rules editor form."
+    },
+    "local_rules_field_referral_marketing": {
+        "message": "Referral Marketing (comma-separated)",
+        "description": "This string is used as the label for the referral marketing input field on the local rules editor form."
+    },
+    "local_rules_field_complete_provider": {
+        "message": "Complete Provider (block entire URL)",
+        "description": "This string is used as the label for the complete provider checkbox on the local rules editor form."
+    },
+    "local_rules_field_force_redirection": {
+        "message": "Force Redirection",
+        "description": "This string is used as the label for the force redirection checkbox on the local rules editor form."
+    },
+    "local_rules_error_name_empty": {
+        "message": "Provider name must not be empty.",
+        "description": "This string is used as a validation error message when the provider name field is left empty."
+    },
+    "local_rules_error_pattern_empty": {
+        "message": "URL pattern must not be empty.",
+        "description": "This string is used as a validation error message when the URL pattern field is left empty."
+    },
+    "local_rules_error_pattern_invalid": {
+        "message": "URL pattern is not a valid regular expression.",
+        "description": "This string is used as a validation error message when the URL pattern is not a valid RegExp."
+    },
+    "local_rules_error_array_invalid": {
+        "message": "Invalid format. Use quoted, comma-separated values: \"value1\", \"value2\"",
+        "description": "This string is used as a validation error message when an array field cannot be parsed as a JSON string array."
+    },
+    "local_rules_form_title_add": {
+        "message": "Add New Provider",
+        "description": "This string is used as the form heading when adding a new provider in the local rules editor."
+    },
+    "local_rules_form_title_edit": {
+        "message": "Edit Provider",
+        "description": "This string is used as the form heading when editing an existing provider in the local rules editor."
+    },
+    "popup_local_rules_title": {
+        "message": "Open local rule overrides editor",
+        "description": "This string is used as the tooltip for the local rules link in the popup."
     }
 }

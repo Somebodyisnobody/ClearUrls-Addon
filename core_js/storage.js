@@ -54,6 +54,7 @@ function storageDataAsString(key) {
 
     switch (key) {
         case "ClearURLsData":
+        case "localRules":
         case "log":
             return JSON.stringify(value);
         case "types":
@@ -153,6 +154,7 @@ function getEntireData() {
 function setData(key, value) {
     switch (key) {
         case "ClearURLsData":
+        case "localRules":
         case "log":
             storage[key] = JSON.parse(value);
             break;
@@ -203,6 +205,7 @@ function initStorage(items) {
  * Set default values for the settings.
  */
 function initSettings() {
+    storage.localRules = {};
     storage.ClearURLsData = [];
     storage.dataHash = "";
     storage.badgedStatus = true;

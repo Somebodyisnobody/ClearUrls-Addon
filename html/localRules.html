@@ -1,0 +1,191 @@
+<!--
+ClearURLs
+Copyright (c) 2017-2025 Kevin Röbert
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Local Rule Overrides from ClearURLs</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" sizes="any" type="image/svg+xml" href="/img/clearurls.svg">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/switchButtons.css">
+    <link rel="stylesheet" type="text/css" href="../css/core.css">
+    <style>
+        td {
+            word-wrap: break-word;
+            max-width: 200px;
+        }
+        .local-rule-new {
+            color: green;
+        }
+        .local-rule-edited {
+            color: goldenrod;
+        }
+        .local-rule-deleted {
+            color: red;
+            text-decoration: line-through;
+        }
+        .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar-margin navbar navbar-dark bg-dark">
+        <div class="container">
+                <span class="navbar-brand">
+                    <span class="float-left"><img src="../img/clearurls.svg"
+                        width="30" height="30" alt=""></span>
+                        <span style="color: #FF7800;" class="float-right" id="page_title"></span><br />
+                        <span class="badge badge-warning float-left small-version"
+                        id="version"></span>
+                    </span>
+                </div>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-6 offset-lg-3">
+                <h4 id="local_rules_provider_list_heading" class="text-center"></h4>
+
+                <br />
+
+                <!-- Provider list container -->
+                <div id="provider_list_container">
+                    <table class="table" id="provider_table">
+                        <thead>
+                            <tr>
+                                <th id="local_rules_field_provider_name"></th>
+                                <th id="local_rules_field_url_pattern"></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="provider_list">
+                        </tbody>
+                    </table>
+                </div>
+
+                <br />
+
+                <!-- Add button -->
+                <p class="text-center">
+                    <button type="button" id="local_rules_add_btn"
+                    class="btn btn-primary"></button>
+                </p>
+
+                <br />
+
+                <!-- Page-level Save and Cancel buttons -->
+                <p class="text-center">
+                    <button type="button" id="local_rules_save_btn"
+                    class="btn btn-success"></button>
+                    <button type="button" id="local_rules_cancel_btn"
+                    class="btn btn-danger"></button>
+                </p>
+
+                <br />
+
+                <!-- Provider form (initially hidden) -->
+                <div id="provider_form_container" style="display: none;">
+                    <hr />
+                    <h5 id="provider_form_title" class="text-center"></h5>
+
+                    <div class="form-group">
+                        <label for="form_provider_name" id="label_provider_name"></label>
+                        <input type="text" id="form_provider_name" class="form-control" />
+                        <div id="error_provider_name" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form_url_pattern" id="label_url_pattern"></label>
+                        <input type="text" id="form_url_pattern" class="form-control" />
+                        <div id="error_url_pattern" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form_rules" id="label_rules"></label>
+                        <input type="text" id="form_rules" class="form-control" />
+                        <div id="error_rules" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form_raw_rules" id="label_raw_rules"></label>
+                        <input type="text" id="form_raw_rules" class="form-control" />
+                        <div id="error_raw_rules" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form_exceptions" id="label_exceptions"></label>
+                        <input type="text" id="form_exceptions" class="form-control" />
+                        <div id="error_exceptions" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form_redirections" id="label_redirections"></label>
+                        <input type="text" id="form_redirections" class="form-control" />
+                        <div id="error_redirections" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form_referral_marketing" id="label_referral_marketing"></label>
+                        <input type="text" id="form_referral_marketing" class="form-control" />
+                        <div id="error_referral_marketing" class="error-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="label_complete_provider" style="font-weight: bold;"></label><br />
+                        <label class="switch">
+                            <input type="checkbox" id="form_complete_provider">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="label_force_redirection" style="font-weight: bold;"></label><br />
+                        <label class="switch">
+                            <input type="checkbox" id="form_force_redirection">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <br />
+
+                    <!-- Form-level OK and Cancel buttons -->
+                    <p class="text-center">
+                        <button type="button" id="local_rules_form_ok_btn"
+                        class="btn btn-success"></button>
+                        <button type="button" id="local_rules_form_cancel_btn"
+                        class="btn btn-danger"></button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optional JavaScript -->
+        <script src="../browser-polyfill.js"></script>
+        <script src="../core_js/localRules.js"></script>
+        <script src="../core_js/write_version.js"></script>
+    </body>
+    </html>
