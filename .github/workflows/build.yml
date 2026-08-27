@@ -1,0 +1,86 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  hash-rules:
+    name: Hash rules
+    runs-on: ubuntu-latest
+    container:
+      image: debian:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y jsonlint jq
+
+      - name: Build rule hashes
+        run: |
+          sha256sum data/data.min.json | awk '{print $1}' > rules.min.hash
+          node build_tools/minifyDataJSON.js "data/data.min.json" "data.minify.json"
+          sha256sum data.minify.json | awk '{print $1}' > rules.minify.hash
+
+      - name: Upload rule artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: rules
+          path: |
+            rules.min.hash
+            data.minify.json
+            rules.minify.hash
+          overwrite: 'true'
+
+  bundle-addon:
+    name: Bundle addon
+    runs-on: ubuntu-latest
+    container:
+      image: debian:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -y
+          apt-get install -y zip unzip
+
+      - name: Create addon bundle
+        run: |
+          zip ClearURLs -r -FS \
+            clearurls.js \
+            browser-polyfill.js \
+            manifest.json \
+            img/* \
+            external_js/* \
+            html/* \
+            core_js/* \
+            css/* \
+            fonts/* \
+            _locales/*
+
+      - name: Upload addon artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ClearURLs
+          path: ClearURLs.zip
+          overwrite: 'true'
