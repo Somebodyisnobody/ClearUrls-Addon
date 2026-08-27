@@ -9,6 +9,7 @@
   "content_security_policy": "script-src 'self'; object-src 'none'",
   "browser_specific_settings": {
     "gecko": {
+      "id": "1776fc5d-d39a-431a-b8fc-32e4d348c200",
       "data_collection_permissions": {
         "required": [
           "none"
