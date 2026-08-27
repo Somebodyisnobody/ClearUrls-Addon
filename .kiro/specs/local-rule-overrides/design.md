@@ -153,6 +153,8 @@ window.reloadProviders = function() {
 
 **Implementation note on scope**: `reloadProviders` is defined inside `start()` and attached to `window`, which keeps `Provider` and `createProviders` in their current nested scope. The tradeoff is that `reloadProviders` only becomes available after `start()` has run, which is guaranteed since `genesis()` calls `start()` before any UI messages can arrive. The `mergeProviders()` function remains at module scope since it has no dependency on inner functions.
 
+**Design note on `prvKeys` and `getKeys()` side effect**: While `createProviders()` now receives the merged providers as a clean parameter, `getKeys()` still populates the module-scope global `prvKeys` array as a side effect. Ideally, key extraction would also be passed as a parameter (or handled internally by `createProviders`), eliminating the reliance on a global. However, this is the existing pattern used by the original `toObject()` code. Since `prvKeys` is not read outside the `getKeys`/`createProviders` sequence, and both `reloadProviders()` and `toObject()` reset `prvKeys` to `[]` before calling `getKeys()`, the side effect is contained and predictable. We leave this as-is to minimize refactoring of existing code patterns. A future cleanup could have `createProviders` extract keys from its own `mergedProviders` parameter internally.
+
 ### 3. CRUD Editor Page
 
 #### `html/localRules.html`
