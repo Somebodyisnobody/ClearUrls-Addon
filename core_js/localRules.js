@@ -28,6 +28,19 @@ var stagedRules = {};
 // Values: "new" | "edited" | "deleted" | null
 var changeStatus = {};
 
+// IDs of all text input fields in the provider form
+var formTextFieldIds = [
+    'form_provider_name', 'form_url_pattern', 'form_rules',
+    'form_raw_rules', 'form_exceptions', 'form_redirections',
+    'form_referral_marketing'
+];
+
+// IDs of all checkbox fields in the provider form
+var formCheckboxFieldIds = ['form_complete_provider', 'form_force_redirection'];
+
+// Currently active form input listeners (to remove on form close)
+var activeFormListeners = [];
+
 /**
  * Initialize the local rules editor.
  * Loads localRules from storage, deep-clones into persistedRules
@@ -53,6 +66,130 @@ function init() {
     }).catch(handleError);
 
     setText();
+}
+
+/**
+ * Compute the effective staged rules by removing entries marked "deleted".
+ * Returns a new object without mutating stagedRules.
+ *
+ * @returns {Object}
+ */
+function getEffectiveStagedRules() {
+    var result = JSON.parse(JSON.stringify(stagedRules));
+    var names = Object.keys(changeStatus);
+    for (var i = 0; i < names.length; i++) {
+        if (changeStatus[names[i]] === 'deleted') {
+            delete result[names[i]];
+        }
+    }
+    return result;
+}
+
+/**
+ * Update the page-level Save button disabled state.
+ * Disabled when the effective staged rules equal the persisted rules.
+ */
+function updateSaveButtonState() {
+    var effective = getEffectiveStagedRules();
+    var hasChanges = JSON.stringify(effective) !== JSON.stringify(persistedRules);
+    document.getElementById('local_rules_save_btn').disabled = !hasChanges;
+}
+
+/**
+ * Attach input/change listeners to all form fields that call the given
+ * callback on every change. Stores references in activeFormListeners
+ * so they can be removed when the form closes.
+ *
+ * @param {Function} callback Called on every input/change event
+ */
+function attachFormListeners(callback) {
+    removeFormListeners();
+
+    for (var i = 0; i < formTextFieldIds.length; i++) {
+        var el = document.getElementById(formTextFieldIds[i]);
+        el.addEventListener('input', callback);
+        activeFormListeners.push({ element: el, event: 'input', handler: callback });
+    }
+
+    for (var j = 0; j < formCheckboxFieldIds.length; j++) {
+        var cb = document.getElementById(formCheckboxFieldIds[j]);
+        cb.addEventListener('change', callback);
+        activeFormListeners.push({ element: cb, event: 'change', handler: callback });
+    }
+}
+
+/**
+ * Remove all active form input listeners.
+ */
+function removeFormListeners() {
+    for (var i = 0; i < activeFormListeners.length; i++) {
+        var l = activeFormListeners[i];
+        l.element.removeEventListener(l.event, l.handler);
+    }
+    activeFormListeners = [];
+}
+
+/**
+ * Check if the form has any non-default values (for add mode).
+ * Returns true if at least one text field is non-empty or any
+ * checkbox is checked.
+ *
+ * @returns {boolean}
+ */
+function formHasContent() {
+    for (var i = 0; i < formTextFieldIds.length; i++) {
+        if (document.getElementById(formTextFieldIds[i]).value.trim()) {
+            return true;
+        }
+    }
+    for (var j = 0; j < formCheckboxFieldIds.length; j++) {
+        if (document.getElementById(formCheckboxFieldIds[j]).checked) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check if the current form values differ from a snapshot (for edit mode).
+ * Compares each text field's raw value and each checkbox's checked state
+ * against the snapshot's serialized form.
+ *
+ * @param {Object} snapshotFormValues The form values captured when the form opened
+ * @returns {boolean}
+ */
+function formDiffersFromSnapshot(snapshotFormValues) {
+    for (var i = 0; i < formTextFieldIds.length; i++) {
+        var id = formTextFieldIds[i];
+        if (document.getElementById(id).value !== snapshotFormValues[id]) {
+            return true;
+        }
+    }
+    for (var j = 0; j < formCheckboxFieldIds.length; j++) {
+        var cbId = formCheckboxFieldIds[j];
+        if (document.getElementById(cbId).checked !== snapshotFormValues[cbId]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Capture the current raw form field values as a snapshot object.
+ *
+ * @returns {Object} Map of field ID to current value (string or boolean)
+ */
+function captureFormValues() {
+    var values = {};
+    for (var i = 0; i < formTextFieldIds.length; i++) {
+        var id = formTextFieldIds[i];
+        values[id] = document.getElementById(id).value;
+    }
+    for (var j = 0; j < formCheckboxFieldIds.length; j++) {
+        var cbId = formCheckboxFieldIds[j];
+        values[cbId] = document.getElementById(cbId).checked;
+    }
+    return values;
 }
 
 /**
@@ -117,6 +254,8 @@ function renderList() {
         tr.appendChild(tdActions);
         tbody.appendChild(tr);
     }
+
+    updateSaveButtonState();
 }
 
 /**
@@ -387,6 +526,13 @@ function openAddForm() {
     var newCancelBtn = cancelBtn.cloneNode(true);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
+    // Start with OK disabled — enable when form has content
+    newOkBtn.disabled = true;
+
+    attachFormListeners(function() {
+        newOkBtn.disabled = !formHasContent();
+    });
+
     newOkBtn.addEventListener('click', function() {
         var formData = readFormData();
         var validation = validateForm(formData);
@@ -408,11 +554,13 @@ function openAddForm() {
 
         stagedRules[formData.name] = formData.data;
         changeStatus[formData.name] = 'new';
+        removeFormListeners();
         document.getElementById('provider_form_container').style.display = 'none';
         renderList();
     });
 
     newCancelBtn.addEventListener('click', function() {
+        removeFormListeners();
         document.getElementById('provider_form_container').style.display = 'none';
     });
 }
@@ -435,6 +583,9 @@ function openEditForm(name) {
     document.getElementById('provider_form_title').textContent = translate('local_rules_form_title_edit');
     document.getElementById('provider_form_container').style.display = '';
 
+    // Capture form values right after populating for diff comparison
+    var snapshotFormValues = captureFormValues();
+
     var okBtn = document.getElementById('local_rules_form_ok_btn');
     var cancelBtn = document.getElementById('local_rules_form_cancel_btn');
 
@@ -443,6 +594,13 @@ function openEditForm(name) {
     okBtn.parentNode.replaceChild(newOkBtn, okBtn);
     var newCancelBtn = cancelBtn.cloneNode(true);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+    // Start with OK disabled — enable when form differs from snapshot
+    newOkBtn.disabled = true;
+
+    attachFormListeners(function() {
+        newOkBtn.disabled = !formDiffersFromSnapshot(snapshotFormValues);
+    });
 
     newOkBtn.addEventListener('click', function() {
         var formData = readFormData();
@@ -471,6 +629,7 @@ function openEditForm(name) {
             changeStatus[name] = 'edited';
         }
 
+        removeFormListeners();
         document.getElementById('provider_form_container').style.display = 'none';
         renderList();
     });
@@ -478,6 +637,7 @@ function openEditForm(name) {
     newCancelBtn.addEventListener('click', function() {
         // Restore snapshot — no changeStatus modification
         stagedRules[name] = snapshot;
+        removeFormListeners();
         document.getElementById('provider_form_container').style.display = 'none';
     });
 }
