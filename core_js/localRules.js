@@ -553,7 +553,13 @@ function openAddForm() {
         }
 
         stagedRules[formData.name] = formData.data;
-        changeStatus[formData.name] = 'new';
+
+        // If re-adding a name that was marked deleted, treat as edited instead of new
+        if (changeStatus[formData.name] === 'deleted') {
+            changeStatus[formData.name] = 'edited';
+        } else {
+            changeStatus[formData.name] = 'new';
+        }
         removeFormListeners();
         document.getElementById('provider_form_container').style.display = 'none';
         renderList();

@@ -250,6 +250,8 @@ Re-opening a staged entry preserves its staged values. For example:
 2. User edits "foo" → changes urlPattern → OK → status remains "new", new urlPattern applied.
 3. User edits "foo" → changes urlPattern again → Cancel → urlPattern reverts to step 2's value.
 
+**Delete-then-re-add**: Adding a provider whose name matches an entry marked "deleted" replaces the deletion. The entry gets the new data and status becomes "edited" (not "new"), since the name already existed in persisted state.
+
 ### 4. Popup Changes
 
 **`html/popup.html`** — Add a new anchor element in the `references_section` div, between the existing cleaning tools and settings icons:
