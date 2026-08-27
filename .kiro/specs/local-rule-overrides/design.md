@@ -81,7 +81,9 @@ case "log":
 
 ### 2. Provider Build Pipeline (`clearurls.js`)
 
-**`mergeProviders(remoteProviders, localRules)`** — A new pure function (defined at module scope, outside `start()`) that performs the shallow merge:
+**CRITICAL DESIGN CONSTRAINT**: `storage.ClearURLsData` must NEVER be mutated with merged data. It holds the pristine remote ruleset and is persisted to disk by `saveOnExit()` and `saveOnDisk()`. Writing merged providers into it would contaminate the remote ruleset on disk, causing local rules to be baked in permanently and re-merged on subsequent starts. The merged providers object must only ever exist as a local variable, never touching `storage`.
+
+**`mergeProviders(remoteProviders, localRules)`** — A new pure function (defined at module scope, outside `start()`) that performs the shallow merge and returns a **new object**, leaving both inputs untouched:
 
 ```javascript
 function mergeProviders(remoteProviders, localRules) {
@@ -95,7 +97,24 @@ function mergeProviders(remoteProviders, localRules) {
 
 This returns a new object. Keys present in `localRules` completely replace the remote entry (shallow replace). Keys only in `localRules` are added. Keys only in `remoteProviders` pass through unchanged.
 
-**Modification to `createProviders()`** — Before the `getKeys()` + `createProviders()` sequence inside `toObject()`, the code will merge:
+**Modification to `createProviders()`** — The existing `createProviders()` reads from `let data = storage.ClearURLsData` and then accesses `data.providers[prvKeys[p]]`. To avoid mutating `storage.ClearURLsData.providers`, we modify `createProviders()` to accept a `mergedProviders` parameter that it reads from instead:
+
+```javascript
+// Inside start():
+function createProviders(mergedProviders) {
+    // Use the passed-in merged object instead of storage.ClearURLsData
+    let data = { providers: mergedProviders };
+
+    for (let p = 0; p < prvKeys.length; p++) {
+        providers.push(new Provider(prvKeys[p],
+            data.providers[prvKeys[p]].getOrDefault('completeProvider', false),
+            data.providers[prvKeys[p]].getOrDefault('forceRedirection', false)));
+        // ... rest of provider construction unchanged
+    }
+}
+```
+
+**Modification to `toObject()`** — Produces the merged object as a local variable and passes it through:
 
 ```javascript
 function toObject(retrievedText) {
@@ -103,51 +122,17 @@ function toObject(retrievedText) {
         storage.ClearURLsData.providers,
         storage.localRules
     );
-    // Replace the providers reference used for key extraction
-    storage.ClearURLsData.providers = merged;
-    getKeys(storage.ClearURLsData.providers);
-    createProviders();
+    getKeys(merged);
+    createProviders(merged);
 }
 ```
 
-Note: This mutates `storage.ClearURLsData.providers` in place so the existing `createProviders()` loop (which reads `data.providers[prvKeys[p]]`) works without any changes to its internal references.
+`storage.ClearURLsData.providers` is read but never written. The `merged` variable is local to `toObject()` and exists only for the duration of the provider build.
 
-**`reloadProviders()`** — A new function defined at module scope (on `window`) so the message handler can dispatch it:
-
-```javascript
-function reloadProviders() {
-    providers = [];
-    prvKeys = [];
-
-    let merged = mergeProviders(
-        storage.ClearURLsData.providers,
-        storage.localRules
-    );
-
-    for (const key in merged) {
-        prvKeys.push(key);
-    }
-
-    // Temporarily set merged providers for createProviders to use
-    let originalProviders = storage.ClearURLsData.providers;
-    storage.ClearURLsData.providers = merged;
-    // createProviders is nested inside start(), so we need an
-    // extracted version — see implementation note below.
-    _buildProviders();
-    storage.ClearURLsData.providers = originalProviders;
-
-    return "OK";
-}
-```
-
-**Implementation note on `createProviders()` accessibility**: Since `createProviders()` and `Provider` are nested inside `start()`, `reloadProviders()` cannot call them directly. The solution is to extract the provider-building logic into a module-scope function `_buildProviders()` that both `start()` and `reloadProviders()` can call. The `Provider` constructor must also be moved to module scope. This is a refactoring of existing code scope, not a change to logic.
-
-Alternatively, a simpler approach: define `reloadProviders` *inside* `start()` but assign it to `window.reloadProviders` so the message handler can find it. This keeps `Provider` and `createProviders` in their current scope while still exposing the reload capability. The tradeoff is that `reloadProviders` only becomes available after `start()` has run (which is guaranteed since `genesis()` calls `start()` before any messages can arrive).
-
-**Chosen approach**: Define `reloadProviders` inside `start()` and attach it to `window`. This minimizes refactoring:
+**`reloadProviders()`** — Defined inside `start()` (so it has access to `createProviders` and `Provider`) and attached to `window` so the message handler can dispatch it. It also only uses a local merged variable:
 
 ```javascript
-// Inside start(), after createProviders is defined:
+// Inside start(), after createProviders and Provider are defined:
 window.reloadProviders = function() {
     providers = [];
     prvKeys = [];
@@ -156,16 +141,17 @@ window.reloadProviders = function() {
         storage.ClearURLsData.providers,
         storage.localRules
     );
-    storage.ClearURLsData.providers = merged;
 
-    getKeys(storage.ClearURLsData.providers);
-    createProviders();
+    getKeys(merged);
+    createProviders(merged);
 
     return "OK";
 };
 ```
 
-The `mergeProviders()` function remains at module scope since it has no dependency on inner functions.
+**Why this is safe**: `storage.ClearURLsData` is never assigned to, never mutated. The merged object is a fresh `Object.assign` copy that lives only as a local variable inside `toObject()` or `reloadProviders()`. When `saveOnExit()` or `saveOnDisk(['ClearURLsData', ...])` serializes `storage.ClearURLsData`, it persists only the original remote data.
+
+**Implementation note on scope**: `reloadProviders` is defined inside `start()` and attached to `window`, which keeps `Provider` and `createProviders` in their current nested scope. The tradeoff is that `reloadProviders` only becomes available after `start()` has run, which is guaranteed since `genesis()` calls `start()` before any UI messages can arrive. The `mergeProviders()` function remains at module scope since it has no dependency on inner functions.
 
 ### 3. CRUD Editor Page
 
