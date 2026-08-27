@@ -1,3 +1,12 @@
+## This is a fork of ClearURLs featuring a local ruleset functionality with an enhanced editor:
+![Interface of the local rule editor](Screenshot%20local%20rule%20editor.png)
+<br/>
+<br/>
+<br/>
+
+---
+# Original readme
+
 <a href="https://www.paypal.me/KevinRoebert" target="_blank"><img src="https://raw.githubusercontent.com/KevinRoebert/DonateButtons/master/Paypal.png" alt="Buy Me A Coffee" height="55"></a>
 <a href="https://www.buymeacoffee.com/KevinRoebert" target="_blank"><img src="https://raw.githubusercontent.com/KevinRoebert/DonateButtons/master/BuyMeACoffee.png" alt="Buy Me A Coffee" height="55"></a>
 
