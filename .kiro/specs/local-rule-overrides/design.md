@@ -187,12 +187,14 @@ var changeStatus = {};
 |---|---|
 | `init()` | Loads `localRules` from storage via `getData`, deep-clones into `persistedRules` and `stagedRules`, renders the list. |
 | `renderList()` | Clears and rebuilds the provider table/list from `stagedRules` + `changeStatus`. Applies CSS classes: `.local-rule-new` (green), `.local-rule-edited` (yellow), `.local-rule-deleted` (red + strikethrough). |
+| `parseCommaSeparated(value)` | Parses a JSON-quoted, comma-separated string into an array of strings via `JSON.parse`. Trims input, strips trailing comma. Returns `null` on parse failure. See "CRITICAL DESIGN CONSTRAINT — Array field parsing" above. |
+| `joinForDisplay(arr)` | Converts an array to a JSON-quoted, comma-separated display string via `JSON.stringify` per element. Round-trips with `parseCommaSeparated`. |
 | `openAddForm()` | Shows the provider form with empty fields. On OK: validates, adds to `stagedRules`, sets `changeStatus[name] = "new"`, re-renders. On Cancel: closes form, no state change. |
 | `openEditForm(name)` | Populates form with `stagedRules[name]`. Stores a snapshot before editing. On OK: validates, updates `stagedRules[name]`, sets `changeStatus[name] = "edited"` (or keeps `"new"` if it was new), re-renders. On Cancel: restores snapshot, closes form. |
 | `markForDeletion(name)` | Sets `changeStatus[name] = "deleted"`, re-renders (does not remove from `stagedRules` until Save). |
 | `save()` | Removes entries marked `"deleted"` from `stagedRules`. Sends `setData('localRules', JSON.stringify(stagedRules))`, then `saveOnExit()`, then `reloadProviders()`. On success: copies `stagedRules` to `persistedRules`, clears `changeStatus`, re-renders. |
 | `cancel()` | Deep-clones `persistedRules` into `stagedRules`, clears `changeStatus`, re-renders. |
-| `validateForm(data)` | Returns `{ valid: boolean, errors: { field: message } }`. Checks: Provider_Name non-empty, `urlPattern` non-empty and valid RegExp. |
+| `validateForm(data)` | Returns `{ valid: boolean, errors: { name, urlPattern, arrayFields } }`. Checks: Provider_Name non-empty, `urlPattern` non-empty and valid RegExp, all array fields parsed successfully (not `null`). |
 
 **Form field mapping** (provider form):
 
@@ -200,13 +202,28 @@ var changeStatus = {};
 |---|---|---|---|
 | Provider_Name | text input | Yes | Must be non-empty. Becomes the object key. |
 | urlPattern | text input | Yes | Must be non-empty, valid RegExp. |
-| rules | text input | No | Comma-separated, split into array. Empty = `[]`. |
-| rawRules | text input | No | Comma-separated, split into array. Empty = `[]`. |
-| exceptions | text input | No | Comma-separated, split into array. Empty = `[]`. |
-| redirections | text input | No | Comma-separated, split into array. Empty = `[]`. |
-| referralMarketing | text input | No | Comma-separated, split into array. Empty = `[]`. |
+| rules | text input | No | JSON-quoted, comma-separated. Parsed via `JSON.parse`. Empty = `[]`. |
+| rawRules | text input | No | JSON-quoted, comma-separated. Parsed via `JSON.parse`. Empty = `[]`. |
+| exceptions | text input | No | JSON-quoted, comma-separated. Parsed via `JSON.parse`. Empty = `[]`. |
+| redirections | text input | No | JSON-quoted, comma-separated. Parsed via `JSON.parse`. Empty = `[]`. |
+| referralMarketing | text input | No | JSON-quoted, comma-separated. Parsed via `JSON.parse`. Empty = `[]`. |
 | completeProvider | checkbox | No | Boolean, defaults `false`. |
 | forceRedirection | checkbox | No | Boolean, defaults `false`. |
+
+**CRITICAL DESIGN CONSTRAINT — Array field parsing**: Array fields (rules, rawRules, exceptions, redirections, referralMarketing) contain regex patterns that frequently include commas inside quantifiers (e.g. `{2,}`, `{1,3}`). Naive comma-splitting would corrupt these patterns. Instead, values are entered in JSON-quoted format: `"value1", "value2with,comma"`. Parsing uses `JSON.parse("[" + input + "]")` which correctly preserves commas inside quoted strings.
+
+**`parseCommaSeparated(value)`** — Parses the JSON-quoted input:
+1. Trim the input
+2. Strip a trailing comma if present (then trim again)
+3. If empty after trimming, return `[]`
+4. Wrap in `[` and `]` to form a JSON array string
+5. `JSON.parse()` — on failure, return `null` (caller shows validation error)
+6. Verify the result is an array where every element is a string; return `null` otherwise
+7. Return the parsed array
+
+**`joinForDisplay(arr)`** — Converts an array back to the quoted input format by calling `JSON.stringify()` on each element and joining with `, `. This produces output like `"utm_source", "^https?:\\/\\/example\\.com(?:\\.[a-z]{2,}){1,}"` that round-trips correctly through `parseCommaSeparated`.
+
+Each array field has a corresponding `<div class="error-message">` element in the HTML (e.g. `error_rules`, `error_exceptions`) for displaying parse errors inline.
 
 **Staging semantics detail**:
 
@@ -350,7 +367,7 @@ changeStatus:   Record<string, "new" | "edited" | "deleted" | null>
 
 ### Property 8: Provider Form Validation
 
-*For any* string `name` and string `pattern`, the `validateForm` function SHALL return valid=true if and only if: (a) `name` is a non-empty string (after trimming), AND (b) `pattern` is a non-empty string AND `new RegExp(pattern)` does not throw. For all other inputs, it SHALL return valid=false with appropriate error messages.
+*For any* string `name` and string `pattern`, and *for any* set of array field input strings, the `validateForm` function SHALL return valid=true if and only if: (a) `name` is a non-empty string (after trimming), AND (b) `pattern` is a non-empty string AND `new RegExp(pattern)` does not throw, AND (c) all array fields parsed successfully (none returned `null` from `parseCommaSeparated`). For all other inputs, it SHALL return valid=false with appropriate error messages.
 
 **Validates: Requirements 8.1, 8.2**
 
@@ -366,6 +383,12 @@ changeStatus:   Record<string, "new" | "edited" | "deleted" | null>
 
 **Validates: Requirements 7.2**
 
+### Property 11: Array Field Round-Trip Integrity
+
+*For any* array of strings (including strings containing commas, backslashes, quotes, and regex quantifiers like `{2,}` or `{1,3}`), calling `joinForDisplay(arr)` followed by `parseCommaSeparated(result)` SHALL return an array deeply equal to the original. This ensures that regex patterns with embedded commas survive the display → edit → parse cycle without corruption.
+
+**Validates: Requirements 4.3, 8.3**
+
 ## Error Handling
 
 ### Storage Errors
@@ -376,6 +399,7 @@ changeStatus:   Record<string, "new" | "edited" | "deleted" | null>
 
 - Invalid Provider_Name (empty/whitespace) or invalid urlPattern (empty or invalid regex) triggers inline error messages next to the offending field. The form remains open. No data is staged.
 - `new RegExp(pattern)` is wrapped in a try/catch to detect invalid regex syntax.
+- Array fields (rules, rawRules, exceptions, redirections, referralMarketing) that fail `JSON.parse` or are not of type array with elements string display an inline error
 
 ### Merge Edge Cases
 
@@ -407,6 +431,10 @@ Unit tests cover specific scenarios, edge cases, and integration points:
 | Validation rejects empty Provider_Name | Req 8.1 |
 | Validation rejects invalid regex urlPattern | Req 8.2 |
 | Validation accepts entry with all optional fields empty | Req 8.4 |
+| `parseCommaSeparated` preserves regex patterns with commas (e.g. `{2,}`) | Property 11 |
+| `parseCommaSeparated` returns `null` for malformed input (unquoted commas) | Property 11 |
+| `joinForDisplay` → `parseCommaSeparated` round-trips arrays with special characters | Property 11 |
+| `parseCommaSeparated` trims input and strips trailing comma | Property 11 |
 | Popup link href set via `browser.runtime.getURL` | Req 6.3 |
 | Popup link has i18n tooltip | Req 6.4 |
 | `localRules.html` includes required script references | Req 4.7b |
@@ -427,6 +455,7 @@ Property-based tests use [fast-check](https://github.com/dubzzz/fast-check) to v
 | Form validation accepts iff name non-empty and pattern valid regex | Property 8 | Feature: local-rule-overrides, Property 8: Provider form validation |
 | Render list shows all providers with name and urlPattern | Property 9 | Feature: local-rule-overrides, Property 9: Render list completeness |
 | All locale files contain all required keys | Property 10 | Feature: local-rule-overrides, Property 10: Locale key completeness |
+| Array field round-trip (joinForDisplay → parseCommaSeparated preserves all strings including those with commas) | Property 11 | Feature: local-rule-overrides, Property 11: Array field round-trip integrity |
 
 ### Test Generators (fast-check)
 
