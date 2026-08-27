@@ -431,6 +431,10 @@
         "message": "URL pattern is not a valid regular expression.",
         "description": "This string is used as a validation error message when the URL pattern is not a valid RegExp."
     },
+    "local_rules_error_array_invalid": {
+        "message": "Invalid format. Use quoted, comma-separated values: \"value1\", \"value2\"",
+        "description": "This string is used as a validation error message when an array field cannot be parsed as a JSON string array."
+    },
     "local_rules_form_title_add": {
         "message": "Add New Provider",
         "description": "This string is used as the form heading when adding a new provider in the local rules editor."

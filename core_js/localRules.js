@@ -120,25 +120,62 @@ function renderList() {
 }
 
 /**
- * Parse a comma-separated string into an array of trimmed, non-empty strings.
- * Returns an empty array for empty or whitespace-only input.
+ * Parse a JSON-style array string into an array of strings.
+ * Input format: "value1", "value2with,comma"
+ * Wraps the input in brackets and delegates to JSON.parse so that
+ * commas inside quoted strings (e.g. regex quantifiers like {2,})
+ * are preserved correctly.
  *
- * @param {string} value The comma-separated input string
- * @returns {string[]}
+ * Returns an empty array for empty or whitespace-only input.
+ * Returns null if the input is not valid JSON array syntax.
+ *
+ * @param {string} value The quoted, comma-separated input string
+ * @returns {string[]|null} Parsed array or null on parse error
  */
 function parseCommaSeparated(value) {
     if (!value || !value.trim()) {
         return [];
     }
-    return value.split(',').map(function(item) {
-        return item.trim();
-    }).filter(function(item) {
-        return item.length > 0;
-    });
+
+    var trimmed = value.trim();
+
+    // Remove trailing comma if present
+    if (trimmed.endsWith(',')) {
+        trimmed = trimmed.slice(0, -1).trim();
+    }
+
+    // Empty after stripping trailing comma
+    if (!trimmed) {
+        return [];
+    }
+
+    var jsonString = '[' + trimmed + ']';
+
+    try {
+        var parsed = JSON.parse(jsonString);
+    } catch (e) {
+        return null;
+    }
+
+    // Ensure it is an array of strings
+    if (!Array.isArray(parsed)) {
+        return null;
+    }
+
+    for (var i = 0; i < parsed.length; i++) {
+        if (typeof parsed[i] !== 'string') {
+            return null;
+        }
+    }
+
+    return parsed;
 }
 
 /**
- * Join an array into a comma-separated string for display in form inputs.
+ * Join an array into a JSON-quoted, comma-separated string for display
+ * in form inputs. Each element is individually JSON.stringify'd so that
+ * special characters are properly escaped and the output round-trips
+ * through parseCommaSeparated.
  *
  * @param {Array} arr The array to join
  * @returns {string}
@@ -147,11 +184,15 @@ function joinForDisplay(arr) {
     if (!arr || !Array.isArray(arr)) {
         return '';
     }
-    return arr.join(', ');
+    return arr.map(function(item) {
+        return JSON.stringify(item);
+    }).join(', ');
 }
 
 /**
  * Read the current form field values and return a provider data object.
+ * Array fields that fail JSON parsing will be set to null so that
+ * validateForm can report the error.
  *
  * @returns {{ name: string, data: Object }}
  */
@@ -185,6 +226,11 @@ function clearForm() {
     document.getElementById('form_force_redirection').checked = false;
     document.getElementById('error_provider_name').textContent = '';
     document.getElementById('error_url_pattern').textContent = '';
+    document.getElementById('error_rules').textContent = '';
+    document.getElementById('error_raw_rules').textContent = '';
+    document.getElementById('error_exceptions').textContent = '';
+    document.getElementById('error_redirections').textContent = '';
+    document.getElementById('error_referral_marketing').textContent = '';
 }
 
 /**
@@ -205,18 +251,24 @@ function populateForm(name, entry) {
     document.getElementById('form_force_redirection').checked = entry.forceRedirection || false;
     document.getElementById('error_provider_name').textContent = '';
     document.getElementById('error_url_pattern').textContent = '';
+    document.getElementById('error_rules').textContent = '';
+    document.getElementById('error_raw_rules').textContent = '';
+    document.getElementById('error_exceptions').textContent = '';
+    document.getElementById('error_redirections').textContent = '';
+    document.getElementById('error_referral_marketing').textContent = '';
 }
 
 /**
  * Validate the provider form data.
- * Checks that Provider_Name is non-empty (after trim) and that urlPattern
- * is non-empty and a valid RegExp.
+ * Checks that Provider_Name is non-empty (after trim), that urlPattern
+ * is non-empty and a valid RegExp, and that all array fields parsed
+ * successfully (are not null).
  *
  * @param {{ name: string, data: Object }} formData The form data to validate
- * @returns {{ valid: boolean, errors: { name: string|null, urlPattern: string|null } }}
+ * @returns {{ valid: boolean, errors: { name: string|null, urlPattern: string|null, arrayFields: Object } }}
  */
 function validateForm(formData) {
-    var errors = { name: null, urlPattern: null };
+    var errors = { name: null, urlPattern: null, arrayFields: {} };
     var valid = true;
 
     // Check Provider_Name is non-empty after trim
@@ -236,6 +288,24 @@ function validateForm(formData) {
             new RegExp(pattern);
         } catch (e) {
             errors.urlPattern = translate('local_rules_error_pattern_invalid');
+            valid = false;
+        }
+    }
+
+    // Check all array fields parsed successfully
+    var arrayFieldIds = ['rules', 'rawRules', 'exceptions', 'redirections', 'referralMarketing'];
+    var errorElementMap = {
+        rules: 'error_rules',
+        rawRules: 'error_raw_rules',
+        exceptions: 'error_exceptions',
+        redirections: 'error_redirections',
+        referralMarketing: 'error_referral_marketing'
+    };
+
+    for (var i = 0; i < arrayFieldIds.length; i++) {
+        var field = arrayFieldIds[i];
+        if (formData.data[field] === null) {
+            errors.arrayFields[errorElementMap[field]] = translate('local_rules_error_array_invalid');
             valid = false;
         }
     }
@@ -329,6 +399,10 @@ function openAddForm() {
             if (validation.errors.urlPattern) {
                 document.getElementById('error_url_pattern').textContent = validation.errors.urlPattern;
             }
+            var fieldIds = Object.keys(validation.errors.arrayFields);
+            for (var i = 0; i < fieldIds.length; i++) {
+                document.getElementById(fieldIds[i]).textContent = validation.errors.arrayFields[fieldIds[i]];
+            }
             return;
         }
 
@@ -382,6 +456,10 @@ function openEditForm(name) {
             }
             if (validation.errors.urlPattern) {
                 document.getElementById('error_url_pattern').textContent = validation.errors.urlPattern;
+            }
+            var fieldIds = Object.keys(validation.errors.arrayFields);
+            for (var i = 0; i < fieldIds.length; i++) {
+                document.getElementById(fieldIds[i]).textContent = validation.errors.arrayFields[fieldIds[i]];
             }
             return;
         }
