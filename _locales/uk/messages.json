@@ -1,4 +1,4 @@
-﻿{
+{
     "hash_status_code_1": {
         "message": "не потребує оновлення",
         "description": "This status code says, that no update is available for the ClearURLs rules and everything is up to date."
@@ -451,6 +451,14 @@
     "local_rules_error_pattern_invalid": {
         "message": "URL pattern is not a valid regular expression.",
         "description": "This string is used as a validation error message when the URL pattern is not a valid RegExp."
+    },
+    "local_rules_form_title_add": {
+        "message": "Add New Provider",
+        "description": "This string is used as the form heading when adding a new provider in the local rules editor."
+    },
+    "local_rules_form_title_edit": {
+        "message": "Edit Provider",
+        "description": "This string is used as the form heading when editing an existing provider in the local rules editor."
     },
     "popup_local_rules_title": {
         "message": "Open local rule overrides editor",
