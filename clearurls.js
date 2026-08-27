@@ -28,6 +28,22 @@ var localDataHash;
 var os;
 
 /**
+ * Merge remote providers with local rule overrides.
+ * Local rules take priority (shallow replace per provider key).
+ * Returns a new object — neither input is mutated.
+ *
+ * @param  {object} remoteProviders  providers from storage.ClearURLsData
+ * @param  {object} localRules       local overrides from storage.localRules
+ * @return {object}                  merged providers object
+ */
+function mergeProviders(remoteProviders, localRules) {
+    if (!localRules || typeof localRules !== 'object') {
+        return Object.assign({}, remoteProviders);
+    }
+    return Object.assign({}, remoteProviders, localRules);
+}
+
+/**
  * Helper function which remove the tracking fields
  * for each provider given as parameter.
  *
@@ -182,8 +198,8 @@ function start() {
      * Initialize the providers form the JSON object.
      *
      */
-    function createProviders() {
-        let data = storage.ClearURLsData;
+    function createProviders(mergedProviders) {
+        let data = { providers: mergedProviders };
 
         for (let p = 0; p < prvKeys.length; p++) {
             //Create new provider
@@ -238,8 +254,12 @@ function start() {
      * @param  {String} retrievedText - pure data form github
      */
     function toObject(retrievedText) {
-        getKeys(storage.ClearURLsData.providers);
-        createProviders();
+        let merged = mergeProviders(
+            storage.ClearURLsData.providers,
+            storage.localRules
+        );
+        getKeys(merged);
+        createProviders(merged);
     }
 
     /**
@@ -683,6 +703,28 @@ function start() {
         // Default case
         return {};
     }
+
+    /**
+     * Reload all providers from current storage data.
+     * Clears existing providers, merges remote + local rules, and rebuilds.
+     * Attached to window so the message handler can dispatch it.
+     *
+     * @return {String} "OK" on success
+     */
+    window.reloadProviders = function() {
+        providers = [];
+        prvKeys = [];
+
+        let merged = mergeProviders(
+            storage.ClearURLsData.providers,
+            storage.localRules
+        );
+
+        getKeys(merged);
+        createProviders(merged);
+
+        return "OK";
+    };
 
     /**
      * Call loadOldDataFromStore, getHash, counter, status and log functions

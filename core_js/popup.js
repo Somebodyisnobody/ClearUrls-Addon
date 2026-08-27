@@ -199,6 +199,7 @@ function resetGlobalCounter(){
             document.getElementById('loggingPage').href = browser.runtime.getURL('./html/log.html');
             document.getElementById('settings').href = browser.runtime.getURL('./html/settings.html');
             document.getElementById('cleaning_tools').href = browser.runtime.getURL('./html/cleaningTool.html');
+            document.getElementById('local_rules').href = browser.runtime.getURL('./html/localRules.html');
             setText();
         });
 })();
@@ -221,6 +222,7 @@ function setText()
     injectText('configs_head','popup_html_configs_head');
     injectText('configs_switch_statistics','configs_switch_statistics');
     document.getElementById('donate').title = translate('donate_button');
+    document.getElementById('local_rules').title = translate('popup_local_rules_title');
 }
 
 /**
