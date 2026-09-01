@@ -1,4 +1,15 @@
-## This is a fork of ClearURLs featuring a local ruleset functionality with an enhanced editor:
+## This is a fork of ClearURLs featuring a local ruleset functionality with an enhanced editor
+**This fork is not distributed through addons.mozilla.org. You can install this patched and officially signed version by downlowding it from the latest GitHub release.**
+
+The fork is provided "as is." Consider this fork an experiment (a working one!). It was raised as part of a exploraion about the capabilities of Amazon Kiro. I don’t mind if anyone wants to use the code in their own project—just go ahead and use it, and let me know; I’m curious.
+
+The code I committed does not meet my quality standards for software. However, within the context of this experiment and given the resulting benefit (the editor's feature with local rules works) it is acceptable. So I know Kiro made up some bullshit in the code. I did not review the code in very detail.
+
+If you have an improvement feel free to submit a pull request. I'll review the PR depending on my workload and its size. In any case, I'll leave a comment letting you know whether I can review it.
+
+And a note from 2026: AI is still not capable of doing good state management in code. Software developers won't become extinct (I'll regret saying that one day)
+
+### Preview local rules editor
 ![Interface of the local rule editor](Screenshot%20local%20rule%20editor.png)
 <br/>
 <br/>
